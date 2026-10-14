@@ -17,6 +17,7 @@ pub mod np{
         arr: Vec<i32>,
         nd: usize,
         shape: Vec<usize>
+        
     }
     #[pymethods]
     impl Np {
