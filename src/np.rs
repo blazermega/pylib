@@ -1,23 +1,21 @@
 use pyo3::pymodule;
 
-
 use pyo3::prelude::*;
 
-
-
 #[pymodule]
-pub mod np{
+pub mod np {
+    use pyo3::prelude::*;
     use pyo3::exceptions::PyTypeError;
     use pyo3::{pyclass, BoundObject};
-    use pyo3::prelude::*;
+
     use pyo3::types::PyList;
 
-    #[pyclass]
+    #[pyclass(skip_from_py_object)]
+    #[derive(Clone, Eq, PartialEq)]
     pub struct Np {
         arr: Vec<i32>,
         nd: usize,
         shape: Vec<usize>
-        
     }
     #[pymethods]
     impl Np {
@@ -48,17 +46,36 @@ pub mod np{
             if self.shape != other.shape {
                 return Err(PyErr::new::<PyTypeError, _>("mismatched shape"));
             }
-            let mut n:Vec<i32> = Vec::new();
-            for i in 0..self.arr.len(){
+            let mut n: Vec<i32> = Vec::new();
+            for i in 0..self.arr.len() {
                 n.push(self.arr[i] + other.arr[i]);
             }
-            Ok(Self{
-                arr:n,
-                nd:self.nd,
-                shape:self.shape.clone()
+            Ok(Self {
+                arr: n,
+                nd: self.nd,
+                shape: self.shape.clone()
             })
         }
-
+        pub fn __mul__(&self, other: &Np) -> PyResult<Self> {
+            if self.shape != other.shape {
+                return Err(PyErr::new::<PyTypeError, _>("mismatched shape"));
+            }
+            let mut n: Vec<i32> = Vec::new();
+            for i in 0..self.arr.len() {
+                n.push((self.arr[i] * other.arr[i]))
+            }
+            Ok(Self {
+                arr: n,
+                nd: self.nd,
+                shape: self.shape.clone()
+            })
+        }
+        /// currently only for 1d or 2d arrays
+        pub fn __matmul__(&self, other: &Np) -> PyResult<Self> {
+            if self.nd > 2 || other.nd > 2 {
+                return Err(PyErr::new::<PyTypeError, _>("Too many dimensions"));
+            }
+        }
     }
 
     impl Np {
@@ -139,5 +156,5 @@ pub mod np{
         }
     }
 
-
 }
+
