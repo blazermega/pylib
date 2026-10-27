@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 pub mod np {
     use pyo3::prelude::*;
     use pyo3::exceptions::PyTypeError;
-    use pyo3::{pyclass, BoundObject};
+    use pyo3::{pyclass, BoundObject, IntoPyObjectExt};
 
     use pyo3::types::PyList;
 
@@ -62,7 +62,7 @@ pub mod np {
             }
             let mut n: Vec<i32> = Vec::new();
             for i in 0..self.arr.len() {
-                n.push((self.arr[i] * other.arr[i]))
+                n.push(self.arr[i] * other.arr[i])
             }
             Ok(Self {
                 arr: n,
@@ -71,10 +71,23 @@ pub mod np {
             })
         }
         /// currently only for 1d or 2d arrays
-        pub fn __matmul__(&self, other: &Np) -> PyResult<Self> {
+        pub fn __matmul__(&self, other: &Np, py:Python<'_>) -> PyResult<Py<PyAny>> {
             if self.nd > 2 || other.nd > 2 {
                 return Err(PyErr::new::<PyTypeError, _>("Too many dimensions"));
             }
+
+            if self.nd == 1 && other.nd == 1 {
+                return (self.matmul_1x1(other).into_py_any(py));
+            }
+            if self.shape[0] == other.shape[1]{
+                return self.matmul_o(other).into_py_any(py);
+            }
+            Err(PyErr::new::<PyTypeError, _>("matrix multiplication failed"))
+
+
+
+
+
         }
     }
 
@@ -154,6 +167,20 @@ pub mod np {
                 format!("[{}]", parts.join(&sep))
             }
         }
+        fn matmul_1x1(&self,other: &Np) -> i32 {
+            let mut sum = 0;
+            for i in 0..self.arr.len() {
+                sum += self.arr[i] * other.arr[i];
+            }
+            sum
+
+        }
+
+        fn matmul_o(&self,other: &Np)  {
+
+
+        }
+
     }
 
 }
