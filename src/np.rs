@@ -177,7 +177,7 @@ pub mod np {
         }
 
         fn matmul_o(&self,other: &Np)  {
-
+            
 
         }
 
